@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
   jenkins:
     image: jenkins/jenkins:lts-jdk17
     container_name: jenkins
     ports:
-      - "9090:8080"   # Changed from 8080 to 9090
+      - "9090:8080"
       - "50000:50000"
     volumes:
       - jenkins_data:/var/jenkins_home
@@ -20,25 +18,37 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "8082:8082"
+      - "8000:8000"
     networks:
       - mynet
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"] # Add health endpoint to your backend
+      interval: 30s
+      timeout: 10s
+      retries: 3
     depends_on:
-      - jenkins
+      jenkins:
+        condition: service_started
 
-  frontend:
+  webscrapping:
     build:
-      context: ./frontend/app
+      context: ./webscrapping/amazon
       dockerfile: Dockerfile
     ports:
-      - "80:80"
+      - "8085:8085"
     networks:
       - mynet
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
-volumes:  # <-- This must be at root level (no indentation)
-  jenkins_data:  # <-- Properly defined volume
+volumes:
+  jenkins_data:
 
-networks:  # <-- This must be at root level
+networks:
   mynet:
