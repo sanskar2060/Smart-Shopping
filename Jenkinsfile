@@ -5,6 +5,19 @@ pipeline {
         retry(2) // Retry failed builds once
     }
     stages {
+
+        stage('Verify Docker') {
+    steps {
+        script {
+            try {
+                sh 'docker ps'
+                echo "✅ Docker access verified"
+            } catch (err) {
+                error("❌ Docker not accessible. Check volume mounts.")
+            }
+        }
+    }
+}
         stage('Checkout Code') {
             steps {
                 checkout scm: [
@@ -19,6 +32,8 @@ pipeline {
                 ]
             }
         }
+
+        
 
         stage('Deploy') {
             steps {
