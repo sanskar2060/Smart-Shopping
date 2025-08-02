@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   jenkins:
     image: jenkins/jenkins:lts-jdk17
@@ -18,34 +20,31 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "8082:8082"
     networks:
       - mynet
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"] # Add health endpoint to your backend
-      interval: 30s
-      timeout: 10s
-      retries: 3
     depends_on:
-      jenkins:
-        condition: service_started
+      - jenkins
 
-  webscrapping:
+  frontend:
     build:
-      context: ./webscrapping/amazon
+      context: ./frontend/app
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    networks:
+      - mynet
+    depends_on:
+      - backend
+
+  amazon-scraper:
+    build:
+      context: ./webScrapping/amazon
       dockerfile: Dockerfile
     ports:
       - "8085:8085"
     networks:
       - mynet
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8085"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    depends_on:
-      backend:
-        condition: service_healthy
 
 volumes:
   jenkins_data:
