@@ -42,8 +42,8 @@ public class User {
     @Column(name = "code_expiry_time")
     private LocalDateTime codeExpiryTime;
 
-    @Column(name = "is_verified")
-    private boolean isVerified = false;
+//    @Column(name = "is_verified")
+//    private boolean isVerified = false;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<SearchHistory> searchHistory;

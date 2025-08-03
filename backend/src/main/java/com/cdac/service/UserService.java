@@ -31,7 +31,7 @@ public class UserService {
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setVerified(false);
+      //  user.setVerified(false);
 
         String otp = generateOTP();
         user.setVerificationCode(otp);
@@ -43,10 +43,10 @@ public class UserService {
 
     public void verifyEmail(VerifyRequest request) {
         System.out.println("Verifying email: " + request.getEmail());
-        System.out.println("Provided code: " + request.getCode());
+        System.out.println("Provided code: " + request.getOtp_code());
 
         User user = userRepository.findByEmailAndVerificationCode(
-                request.getEmail().trim(), request.getCode().trim())
+                request.getEmail().trim(), request.getOtp_code().trim())
             .orElseThrow(() -> new RuntimeException("Invalid code or email"));
 
         System.out.println("User found: " + user.getEmail() + ", Code in DB: " + user.getVerificationCode());
@@ -55,7 +55,7 @@ public class UserService {
             throw new RuntimeException("OTP expired");
         }
 
-        user.setVerified(true);
+       // user.setVerified(true);
         user.setVerificationCode(null);
         user.setCodeExpiryTime(null);
         userRepository.save(user);
@@ -66,9 +66,9 @@ public class UserService {
         return String.valueOf((int)(Math.random() * 900000) + 100000); 
     }
 
-    public boolean isUserVerified(String email) {
-        return userRepository.findByEmail(email)
-            .map(User::isVerified)
-            .orElse(false);
-    }
+//    public boolean isUserVerified(String email) {
+//        return userRepository.findByEmail(email)
+//            .map(User::isVerified)
+//            .orElse(false);
+//    }
 }
