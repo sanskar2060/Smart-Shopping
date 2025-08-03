@@ -6,15 +6,18 @@ import re
 
 app = Flask(__name__)
 
-# Set headers to mimic a browser visit
+# Set headers to mimic a browser visit for Amazon India
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-    'Accept-Language': 'en-US, en;q=0.5'
+    'Accept-Language': 'en-IN, en;q=0.5'
 }
 
+# Amazon India domain
+AMAZON_DOMAIN = "www.amazon.in"
+
 def scrape_product_page(asin):
-    """Scrape product details from Amazon product page"""
-    url = f"https://www.amazon.com/dp/{asin}"
+    """Scrape product details from Amazon India product page"""
+    url = f"https://{AMAZON_DOMAIN}/dp/{asin}"
     
     try:
         response = requests.get(url, headers=HEADERS)
@@ -23,11 +26,18 @@ def scrape_product_page(asin):
         soup = BeautifulSoup(response.text, 'html.parser')
         
         # Extract product details
+        price = get_text(soup, 'span', {'class': 'a-price-whole'})
+        
+        # Only return product if it has a price
+        if not price:
+            return None
+            
         product = {
             'asin': asin,
             'url': url,
             'title': get_text(soup, 'span', {'id': 'productTitle'}),
-            'price': get_text(soup, 'span', {'class': 'a-price-whole'}),
+            'price': price,
+            'currency': '₹',  # Indian Rupee symbol
             'description': get_description(soup),
             'rating': get_text(soup, 'span', {'class': 'a-icon-alt'}),
             'image': get_image(soup)
@@ -69,8 +79,8 @@ def get_image(soup):
     return img.get('src') if img else None
 
 def search_products_by_description(description):
-    """Search Amazon products by description and return first few results"""
-    search_url = f"https://www.amazon.com/s?k={quote(description)}"
+    """Search Amazon India products by description and return results with prices"""
+    search_url = f"https://{AMAZON_DOMAIN}/s?k={quote(description)}"
     
     try:
         response = requests.get(search_url, headers=HEADERS)
@@ -82,13 +92,28 @@ def search_products_by_description(description):
         # Extract search results
         results = soup.find_all('div', {'data-component-type': 's-search-result'})
         
-        for result in results[:100]:  # Limit to first 5 results
+        for result in results[:100]:  # Limit to first 100 results
             asin = result.get('data-asin')
             if not asin:
                 continue
                 
-            title = get_text(result, 'span', {'class': 'a-text-normal'})
             price = get_text(result, 'span', {'class': 'a-price-whole'})
+            
+            # Only include products that have a price
+            if not price:
+                continue
+                
+   # Updated title extraction based on the HTML structure you shared
+            title_element = result.find('h2', {'class': 'a-size-base-plus'}) or \
+                          result.find('span', {'class': 'a-text-normal'})
+            
+            # Get text from the span inside h2 if available
+            if title_element:
+                inner_span = title_element.find('span')
+                title = inner_span.get_text(strip=True) if inner_span else title_element.get_text(strip=True)
+            else:
+                title = None            
+            
             rating = get_text(result, 'span', {'class': 'a-icon-alt'})
             image = result.find('img', {'class': 's-image'})
             image_url = image.get('src') if image else None
@@ -97,9 +122,10 @@ def search_products_by_description(description):
                 'asin': asin,
                 'title': title,
                 'price': price,
+                'currency': '₹',  # Indian Rupee symbol
                 'rating': rating,
                 'image': image_url,
-                'url': f"https://www.amazon.com/dp/{asin}"
+                'url': f"https://{AMAZON_DOMAIN}/dp/{asin}"
             })
         
         return products
@@ -109,28 +135,34 @@ def search_products_by_description(description):
 
 @app.route('/product/<asin>', methods=['GET'])
 def get_product(asin):
-    """Endpoint to get product by ASIN"""
+    """Endpoint to get product by ASIN from Amazon India"""
     # Validate ASIN format (Amazon Standard Identification Number)
     if not re.match(r'^[A-Z0-9]{10}$', asin):
         return jsonify({'error': 'Invalid ASIN format'}), 400
     
     product = scrape_product_page(asin)
+    if product is None:
+        return jsonify({'error': 'Product not found or no price available'}), 404
     return jsonify(product)
 
 @app.route('/', methods=['GET'])
 def home():
-    return "amazon scraper"
-
+    return "Amazon India Scraper - Only shows products with prices"
 
 @app.route('/search', methods=['GET'])
 def search_products():
-    """Endpoint to search products by description"""
+    """Endpoint to search products by description on Amazon India"""
     query = request.args.get('q')
     if not query:
         return jsonify({'error': 'Missing search query parameter "q"'}), 400
     
     results = search_products_by_description(query)
-    return jsonify({'query': query, 'results': results})
+    return jsonify({
+        'query': query,
+        'domain': AMAZON_DOMAIN,
+        'country': 'India',
+        'results': results
+    })
 
 if __name__ == '__main__':
     import argparse
@@ -138,4 +170,4 @@ if __name__ == '__main__':
     parser.add_argument('--port', type=int, default=5000, help='Port to run the Flask app on')
     args = parser.parse_args()
     
-    app.run(host='0.0.0.0', port=args.port, debug=False)  # debug=False for production
+    app.run(host='0.0.0.0', port=args.port, debug=False)
