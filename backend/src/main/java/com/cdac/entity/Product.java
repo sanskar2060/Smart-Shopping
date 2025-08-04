@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-// A simple POJO to unify product info from Amazon & Flipkart
+
 @Entity
 @Getter
 @Setter
