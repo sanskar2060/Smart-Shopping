@@ -100,7 +100,7 @@ public class AuthController {
         user.setEmail(tempUser.getEmail());
         user.setPassword(tempUser.getEncodedPassword());
       //  user.setVerified(true);
-        user.setVerificationCode(null);
+      //  user.setVerificationCode(null);
         user.setCodeExpiryTime(null);
 
         userRepo.save(user);
@@ -122,9 +122,7 @@ public class AuthController {
 
         User user = userOpt.get();
 
-//        if (!user.isVerified()) {
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Email not verified.");
-//        }
+
 
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
