@@ -101,7 +101,7 @@ const Register = () => {
     }
     
     try {
-      const response = await axios.post('http://localhost:8080/auth/verify', {
+      const response = await axios.post('auth/verify', {
         email: registeredEmail,
         code: otp
       });
@@ -118,7 +118,7 @@ const Register = () => {
 
   const handleResendOTP = async () => {
     try {
-      await axios.post('http://localhost:8080/api/auth/resend-otp', {
+      await axios.post('auth/resend-otp', {
         email: registeredEmail
       });
       setErrors(prev => ({ ...prev, form: 'New OTP sent to your email' }));
