@@ -15,7 +15,7 @@ public class ProductController {
     private ScraperService scraperService;
 
     @GetMapping
-    public List<Product> getComparedProducts(@RequestParam("query") String query) {
+    public List<Product> compare(@RequestParam("q") String query) {
         return scraperService.fetchAndCompareProducts(query);
     }
 }
