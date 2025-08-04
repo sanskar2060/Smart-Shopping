@@ -38,9 +38,7 @@ public class User {
 
 
 
-    @Column(name = "code_expiry_time")
-    private LocalDateTime codeExpiryTime;
-
+    
 
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)

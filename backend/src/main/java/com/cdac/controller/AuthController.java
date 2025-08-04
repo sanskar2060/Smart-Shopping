@@ -99,10 +99,7 @@ public class AuthController {
         user.setUsername(tempUser.getUsername());
         user.setEmail(tempUser.getEmail());
         user.setPassword(tempUser.getEncodedPassword());
-      //  user.setVerified(true);
-      //  user.setVerificationCode(null);
-        user.setCodeExpiryTime(null);
-
+     
         userRepo.save(user);
         tempUsers.remove(request.getEmail());
 
