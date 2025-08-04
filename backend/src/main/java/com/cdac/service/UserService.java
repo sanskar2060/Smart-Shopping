@@ -68,7 +68,7 @@ public class UserService {
         user.setEmail(tempUser.getEmail());
         user.setUsername(tempUser.getUsername());
         user.setPassword(tempUser.getEncodedPassword());
-        user.setCodeExpiryTime(null); // not used now
+      //  user.setCodeExpiryTime(null); // not used now
         userRepository.save(user);
 
         // Cleanup from temp store
