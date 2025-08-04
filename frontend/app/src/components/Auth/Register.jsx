@@ -103,7 +103,7 @@ const Register = () => {
     try {
       const response = await axios.post('auth/verify', {
         email: registeredEmail,
-        code: otp
+        otp_code: otp
       });
       
       navigate('/login', { state: { registrationSuccess: true } });
