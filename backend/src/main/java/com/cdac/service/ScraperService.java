@@ -43,8 +43,13 @@ public class ScraperService {
                 JSONObject item = flipkartResults.getJSONObject(i);
                 String title = item.optString("name");
                 String link = item.optString("link");
+                String imgurl = item.optString("thumbnail");
                 double price = item.optDouble("current_price", 0.0);
-                Product product = new Product((long) (Math.random() * 100000), title, "Flipkart", price, link);
+
+                // Extract PID from URL
+                String pid = extractFlipkartPid(link);
+
+                Product product = new Product(pid, title, "Flipkart", price, imgurl, link);
                 products.add(product);
             }
         } catch (Exception e) {
@@ -60,11 +65,14 @@ public class ScraperService {
 
             for (int i = 0; i < amazonResults.length(); i++) {
                 JSONObject item = amazonResults.getJSONObject(i);
+                String asin = item.optString("asin");
                 String title = item.optString("title");
                 String link = item.optString("url");
+                String imgurl = item.optString("image");
                 String priceStr = item.optString("price").replaceAll("[^\\d.]", "");
                 double price = priceStr.isEmpty() ? 0.0 : Double.parseDouble(priceStr);
-                Product product = new Product((long) (Math.random() * 100000), title, "Amazon", price, link);
+
+                Product product = new Product(asin, title, "Amazon", price, imgurl, link);
                 products.add(product);
             }
         } catch (Exception e) {
@@ -74,9 +82,28 @@ public class ScraperService {
         // Step 4: Sort and store in Redis
         products.sort(Comparator.comparingDouble(Product::getCost));
 
-        // Save in Redis (set expiration optional, e.g., 10 min)
+        // Cache to Redis
         redisTemplate.opsForValue().set(redisKey, new ProductListWrapper(products));
 
         return products;
+    }
+
+    // Utility to extract Flipkart PID from link
+    private String extractFlipkartPid(String url) {
+        try {
+            String[] parts = url.split("\\?");
+            if (parts.length > 1) {
+                String[] params = parts[1].split("&");
+                for (String param : params) {
+                    if (param.startsWith("pid=")) {
+                        return param.split("=")[1];
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("PID extract error: " + e.getMessage());
+        }
+        // fallback
+        return UUID.randomUUID().toString();
     }
 }

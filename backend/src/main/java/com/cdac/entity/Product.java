@@ -1,23 +1,20 @@
 package com.cdac.entity;
 
-import java.io.Serializable;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import lombok.*;
+
+import java.io.Serializable;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
 public class Product implements Serializable {
 
-    @Id
-    private Long id; // Add logic to generate unique id (optional for Redis)
+    private String id; // product ID (Amazon/Flipkart)
 
     private String title;
-    private String source;
+    private String source; // Amazon / Flipkart
     private double cost;
-    private String link;
+    private String imageUrl;
+    private String productUrl;
 }
