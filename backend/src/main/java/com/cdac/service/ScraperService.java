@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
-
 @Service
 public class ScraperService {
 
@@ -19,6 +18,10 @@ public class ScraperService {
 
     @Autowired
     private RedisTemplate<String, ProductListWrapper> redisTemplate;
+
+    // Use service names from docker-compose instead of localhost
+    private static final String FLIPKART_SERVICE_URL = "http://flipkart-scraper:3000/search/";
+    private static final String AMAZON_SERVICE_URL = "http://amazon-scraper:8085/search";
 
     public List<Product> fetchAndCompareProducts(String query) {
         String redisKey = "PRODUCTS_" + query.toLowerCase();
@@ -34,7 +37,7 @@ public class ScraperService {
 
         // Step 2: Fetch from Flipkart
         try {
-            String flipkartUrl = "http://localhost:5000/search/" + query;
+            String flipkartUrl = FLIPKART_SERVICE_URL + query;
             ResponseEntity<String> flipkartResponse = restTemplate.getForEntity(flipkartUrl, String.class);
             JSONObject flipkartJson = new JSONObject(flipkartResponse.getBody());
             JSONArray flipkartResults = flipkartJson.getJSONArray("result");
@@ -46,19 +49,18 @@ public class ScraperService {
                 String imgurl = item.optString("thumbnail");
                 double price = item.optDouble("current_price", 0.0);
 
-                // Extract PID from URL
                 String pid = extractFlipkartPid(link);
-
                 Product product = new Product(pid, title, "Flipkart", price, imgurl, link);
                 products.add(product);
             }
         } catch (Exception e) {
             System.out.println("Flipkart fetch failed: " + e.getMessage());
+            e.printStackTrace();
         }
 
         // Step 3: Fetch from Amazon
         try {
-            String amazonUrl = "http://localhost:8085/search?q=" + query;
+            String amazonUrl = AMAZON_SERVICE_URL + "?q=" + query;
             ResponseEntity<String> amazonResponse = restTemplate.getForEntity(amazonUrl, String.class);
             JSONObject amazonJson = new JSONObject(amazonResponse.getBody());
             JSONArray amazonResults = amazonJson.getJSONArray("results");
@@ -77,6 +79,7 @@ public class ScraperService {
             }
         } catch (Exception e) {
             System.out.println("Amazon fetch failed: " + e.getMessage());
+            e.printStackTrace();
         }
 
         // Step 4: Sort and store in Redis
@@ -88,7 +91,6 @@ public class ScraperService {
         return products;
     }
 
-    // Utility to extract Flipkart PID from link
     private String extractFlipkartPid(String url) {
         try {
             String[] parts = url.split("\\?");
@@ -103,7 +105,6 @@ public class ScraperService {
         } catch (Exception e) {
             System.out.println("PID extract error: " + e.getMessage());
         }
-        // fallback
         return UUID.randomUUID().toString();
     }
 }
