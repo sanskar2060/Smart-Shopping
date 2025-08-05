@@ -24,7 +24,7 @@
     </properties>
 
     <dependencies>
-        <!-- Web and REST APIs -->
+         <!-- Web and REST APIs -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -41,8 +41,6 @@
     <groupId>org.json</groupId>
     <artifactId>json</artifactId>
     <version>20240303</version> <!-- or latest version -->
-<<<<<<< HEAD
-=======
 </dependency>   
       
       <dependency>
@@ -54,7 +52,6 @@
 <dependency>
     <groupId>com.fasterxml.jackson.core</groupId>
     <artifactId>jackson-databind</artifactId>
->>>>>>> 227a33330fb1c33e1f876118f2850c3e6dc3a838
 </dependency>
 
         
