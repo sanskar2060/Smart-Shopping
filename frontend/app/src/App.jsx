@@ -5,7 +5,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Register from './components/Auth/Register';
 import { AuthProvider } from './components/Context/AuthContext';
 import  ProtectedRoute from "./components/Context/ProtectedRoute"
+import CompareNow from "./components/Pages/CompareNow"
 
+import HowItWorks from './components/Products/HowItWorks';
 function App() {
   const [count, setCount] = useState(0)
 
@@ -17,8 +19,8 @@ function App() {
          <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
-
+<Route path="/search" element={<CompareNow />} />
+<Route path="/how-it-works" element={<HowItWorks />} />
 <Route element={<ProtectedRoute />}>
        //ProtectedRoute will we here
         </Route>
