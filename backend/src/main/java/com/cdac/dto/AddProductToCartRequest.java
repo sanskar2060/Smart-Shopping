@@ -6,6 +6,6 @@ import lombok.Data;
 
 @Data
 public class AddProductToCartRequest {
-	private Long userId;   // Who is adding
+	private String email;   // Who is adding
     private Product product;
 }

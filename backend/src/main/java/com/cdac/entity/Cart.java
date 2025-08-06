@@ -31,8 +31,9 @@ public class Cart {
 
     // Using ElementCollection to store simple Product data
     // If you need more complex relationship, consider @OneToMany with CartItem entity
-    @ElementCollection
+    
     @CollectionTable(name = "cart_products", joinColumns = @JoinColumn(name = "cart_id"))
+    @ElementCollection
     private List<Product> products = new ArrayList();
 
     
