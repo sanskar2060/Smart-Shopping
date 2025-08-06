@@ -13,19 +13,30 @@ import org.springframework.data.redis.serializer.*;
 @Configuration
 public class RedisConfig {
 
+<<<<<<< HEAD
     @Value("${spring.redis.host:localhost}")
     private String redisHost;
 
     @Value("${spring.redis.port:6379}")
+=======
+    @Value("${spring.redis.host}")
+    private String redisHost;
+
+    @Value("${spring.redis.port}")
+>>>>>>> b5bc295d65dcecd9dbb704f1a88fdd6733045368
     private int redisPort;
 
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
+<<<<<<< HEAD
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
         config.setHostName(redisHost);
         config.setPort(redisPort);
 
         // Password not required or used
+=======
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(redisHost, redisPort);
+>>>>>>> b5bc295d65dcecd9dbb704f1a88fdd6733045368
         return new LettuceConnectionFactory(config);
     }
 

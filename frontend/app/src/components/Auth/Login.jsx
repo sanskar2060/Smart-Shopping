@@ -76,7 +76,7 @@ const Login = () => {
       login(user, token);
       
       // Redirect to dashboard or home
-      navigate('/dashboard');
+      navigate('/');
     } catch (error) {
       if (error.response) {
         // Handle different error statuses
