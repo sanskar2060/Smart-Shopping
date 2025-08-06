@@ -1,4 +1,4 @@
-# Smart Shopping 
+# Smart Shopping
 
 This is a full-stack web application for comparing prices, reviews, ratings, and delivery info for products across major e-commerce platforms like **Amazon** and **Flipkart**.
 
@@ -18,13 +18,13 @@ This is a full-stack web application for comparing prices, reviews, ratings, and
 
 ## 🛠️ Tech Stack
 
-| Layer         | Tech                  |
-|---------------|-----------------------|
-| Frontend      | React.js              |
-| Backend       | Spring Boot (Java)    |
-| Database      | PostgreSQL            |
-| Caching       | Redis                 |
-| Web Scraping  |APIs                   |
+| Layer            | Tech                    |
+| ---------------- | ----------------------- |
+| Frontend         | React.js                |
+| Backend          | Spring Boot (Java)      |
+| Database         | PostgreSQL              |
+| Caching          | Redis                   |
+| Web Scraping     | APIs                    |
 | Containerization | Docker + Docker Compose |
 
 ---
@@ -47,5 +47,6 @@ This is a full-stack web application for comparing prices, reviews, ratings, and
 ### 🧃 Run All Services Together
 
 ```bash
-docker-compose -f docker-compose.jenkins.yml down -v
-docker-compose -f docker-compose.jenkins.yml up -d --build
+docker compose -f docker-compose.jenkins.yml down -v
+docker compose -f docker-compose.jenkins.yml up -d --build
+```

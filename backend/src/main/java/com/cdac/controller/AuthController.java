@@ -56,11 +56,9 @@ public class AuthController {
 		if (userRepo.findByEmail(request.getEmail()).isPresent()) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email already registered.");
 		}
+      
 
-		// if (tempUsers.containsKey(request.getEmail())) {
-		// return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email already
-		// pending verification.");
-		// }
+	
 
 		String otp = generateOTP();
 		LocalDateTime expiry = LocalDateTime.now().plusMinutes(10);

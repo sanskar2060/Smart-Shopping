@@ -118,7 +118,11 @@ const Register = () => {
 
   const handleResendOTP = async () => {
     try {
+<<<<<<< HEAD
       await axios.post('auth/resend-otp', {
+=======
+      await axios.post('api/auth/resend-otp', {
+>>>>>>> c9058dac815c19c102924777f9c152a72180a9b7
         email: registeredEmail
       });
       setErrors(prev => ({ ...prev, form: 'New OTP sent to your email' }));

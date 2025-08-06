@@ -13,76 +13,59 @@ import com.cdac.entity.User;
 import com.cdac.repository.CartRepository;
 import com.cdac.repository.UserRepository;
 
-
 @Service
 public class CartService {
-	 @Autowired
-	    private CartRepository cartRepository;
+	@Autowired
+	private CartRepository cartRepository;
 
-	    @Autowired
-	    private UserRepository userRepository;
+	@Autowired
+	private UserRepository userRepository;
 
-	    public void addProductToCart(AddProductToCartRequest request) {
-	        User user = userRepository.findByEmail(request.getEmail())
-	                .orElseThrow(() -> new RuntimeException("User not found"));
+	public void addProductToCart(AddProductToCartRequest request) {
+		User user = userRepository.findByEmail(request.getEmail())
+				.orElseThrow(() -> new RuntimeException("User not found"));
 
-	        Cart cart = cartRepository.findByUser(user).orElse(new Cart());
-	        cart.setUser(user);
+		Cart cart = cartRepository.findByUser(user).orElse(new Cart());
+		cart.setUser(user);
 
-	        // Convert ProductDto to Product (Embeddable)
-	        Product dto = request.getProduct();
-	        Product product = new Product(dto.getId(), dto.getTitle(), dto.getSource(),
-	                dto.getCost(), dto.getImageUrl(), dto.getProductUrl());
+		// Convert ProductDto to Product (Embeddable)
+		Product dto = request.getProduct();
+		Product product = new Product(dto.getId(), dto.getTitle(), dto.getSource(), dto.getCost(), dto.getImageUrl(),
+				dto.getProductUrl());
 
-	        cart.addProduct(product);
-	        cartRepository.save(cart);
-	    }
-	    
-	    public List<Product> getProductsByUserId(Long userId) {
-	        User user = userRepository.findById(userId)
-	                .orElseThrow(() -> new RuntimeException("User not found"));
+		cart.addProduct(product);
+		cartRepository.save(cart);
+	}
 
-	        Cart cart = cartRepository.findByUser(user)
-	                .orElseThrow(() -> new RuntimeException("Cart not found"));
+	public List<Product> getProductsByUserId(Long userId) {
+		User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
-	        return cart.getProducts();
-	    }
-	    
-	 // New method to remove a product from the cart
-	    public void removeProductFromCart(RemoveProductFromCartRequest request) {
-	        User user = userRepository.findByEmail(request.getEmail())
-	                .orElseThrow(() -> new RuntimeException("User not found"));
-	        	
-	        System.out.println("user found");
-	        Cart cart = cartRepository.findByUser(user)
-	                .orElseThrow(() -> new RuntimeException("Cart not found for user: " + request.getEmail()));
+		Cart cart = cartRepository.findByUser(user).orElseThrow(() -> new RuntimeException("Cart not found"));
 
-	        // Create a Product object with just the ID for removal comparison
-	        // This relies on the Product.equals() method implemented earlier
-	        
-	        Product productToRemove = request.getProduct();
-	        
-	        System.out.println("product found");
-	        
-	        System.out.println(productToRemove.toString());
+		return cart.getProducts();
+	}
 
-	        int index = cart.getProducts().indexOf(productToRemove);
-	        Product p1 = cart.getProducts().remove(index);
-	        
-	        System.out.println("after product to remove");
-	        
-	        
-//	        for(Product p : cart.getProducts() ) {
-//	        	System.out.println(p.toString());
-//	        }
-	        
-	        
+	// New method to remove a product from the cart
+	public void removeProductFromCart(RemoveProductFromCartRequest request) {
+		User user = userRepository.findByEmail(request.getEmail())
+				.orElseThrow(() -> new RuntimeException("User not found"));
 
-	        if (p1 == null) {
-	            throw new RuntimeException("Product with ID " + request.getProduct().getId() + " not found in cart.");
-	        }
-	        System.out.println("product removed");
+		System.out.println("user found");
+		Cart cart = cartRepository.findByUser(user)
+				.orElseThrow(() -> new RuntimeException("Cart not found for user: " + request.getEmail()));
 
-	        cartRepository.save(cart); // Save the updated cart
-	    }
+		// Create a Product object with email for removal comparison
+
+		Product productToRemove = request.getProduct();
+
+		// This relies on the Product.equals() method implemented earlier
+		boolean productRemoved = cart.getProducts().remove(productToRemove);
+
+		if (productRemoved == false) {
+			throw new RuntimeException("Product with ID " + request.getProduct().getId() + " not found in cart.");
+		}
+		System.out.println("product removed");
+
+		cartRepository.save(cart); // Save the updated cart
+	}
 }

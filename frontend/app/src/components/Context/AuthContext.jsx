@@ -14,7 +14,7 @@ export function AuthProvider({ children }) {
     const storedToken = localStorage.getItem('token');
     
     if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
+      setUser(storedUser);
       setToken(storedToken);
     }
     setLoading(false);
@@ -24,7 +24,7 @@ export function AuthProvider({ children }) {
     setUser(userData);
     setToken(authToken);
     // Store in localStorage
-    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('user', userData);
     localStorage.setItem('token', authToken);
   };
 
