@@ -9,6 +9,9 @@ import CompareNow from "./components/Pages/CompareNow"
 
 import HowItWorks from './components/Products/HowItWorks';
 import SupportedStores from './components/Pages/SupportedStores';
+import Cart from './components/Pages/Cart';
+import Logout from './components/Auth/Logout';
+
 function App() {
   const [count, setCount] = useState(0)
 
@@ -23,6 +26,9 @@ function App() {
 <Route path="/search" element={<CompareNow />} />
 <Route path="/how-it-works" element={<HowItWorks />} />
 <Route path="/stores" element={<SupportedStores />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/logout" element={<Logout />} />
+
 
 <Route element={<ProtectedRoute />}>
        //ProtectedRoute will we here

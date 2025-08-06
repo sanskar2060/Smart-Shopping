@@ -1,56 +1,13 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
-
+import Navbar from "../Header/Navbar"
 const HomePage = () => {
   const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       {/* Navigation Bar */}
-      <nav className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex items-center">
-              <Link to="/" className="flex items-center">
-                <span className="text-2xl font-bold text-blue-600">ShopSmart</span>
-                <span className="ml-1 text-2xl font-bold text-orange-500">.</span>
-              </Link>
-            </div>
-            <div className="hidden md:flex items-center space-x-8">
-              <Link to="/how-it-works" className="text-gray-600 hover:text-blue-600 text-sm font-medium">
-                How It Works
-              </Link>
-              <Link to="/stores" className="text-gray-600 hover:text-blue-600 text-sm font-medium">
-                Supported Stores
-              </Link>
-              {user ? (
-                <Link
-                  to="/dashboard"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
-                >
-                  My Dashboard
-                </Link>
-              ) : (
-                <div className="flex space-x-4">
-                  <Link
-                    to="/login"
-                    className="text-blue-600 px-3 py-2 text-sm font-medium hover:text-blue-800"
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    to="/register"
-                    className="bg-orange-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-orange-600 transition-colors"
-                  >
-                    Get Started Free
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
-
+     <Navbar/>
       {/* Hero Section */}
       <div className="relative bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto">

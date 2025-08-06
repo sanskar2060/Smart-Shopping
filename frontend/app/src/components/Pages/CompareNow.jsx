@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 // import SearchBar from '../components/Products/SearchBar';
 import ProductCard from "../Products/ProductCard";
+import Navbar from '../Header/Navbar';
 
 const CompareNow = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,7 +43,7 @@ const CompareNow = () => {
 
     if (validProducts.length === 0 && data.length > 0) {
       console.warn('No valid products found in response:', data);
-      throw new Error('Received products but none had valid format');
+      throw new Error('No product found ');
     }
 
     if (validProducts.length < data.length) {
@@ -68,6 +69,9 @@ const CompareNow = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+
+
+      <Navbar/>
       {/* Navigation (you can reuse your existing nav or create a separate component) */}
       
       {/* Main Content */}
