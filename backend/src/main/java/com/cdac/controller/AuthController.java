@@ -1,7 +1,9 @@
 package com.cdac.controller;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Optional;
+
+import jakarta.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -36,24 +38,22 @@ public class AuthController {
     @Autowired
     private EmailService emailService;
 
-   
-    private Map<String, TempUser> tempUsers = new HashMap<>();
-
     @GetMapping("/test")
     public String testing() {
         return "Hello Chirag";
     }
 
-   
-    // Register: Store in memory + send OTP
+    
+    // Register: Store in session + send OTP
    
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<String> register(@RequestBody RegisterRequest request, HttpSession session) {
         if (userRepo.findByEmail(request.getEmail()).isPresent()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email already registered.");
         }
 
-        if (tempUsers.containsKey(request.getEmail())) {
+        TempUser sessionTempUser = (TempUser) session.getAttribute("tempUser");
+        if (sessionTempUser != null && sessionTempUser.getEmail().equals(request.getEmail())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email already pending verification.");
         }
 
@@ -68,20 +68,20 @@ public class AuthController {
             expiry
         );
 
-        tempUsers.put(request.getEmail(), tempUser);
+        session.setAttribute("tempUser", tempUser);  // ✅ Store in session
         emailService.sendVerificationEmail(request.getEmail(), otp);
 
         return ResponseEntity.ok("OTP sent to your email. Please verify to complete registration.");
     }
 
-   
-    // Verify: Save user to DB only if OTP valid
+    
+    // Verify: Validate OTP and Save User
     
     @PostMapping("/verify")
-    public ResponseEntity<String> verify(@RequestBody VerifyRequest request) {
-        TempUser tempUser = tempUsers.get(request.getEmail());
+    public ResponseEntity<String> verify(@RequestBody VerifyRequest request, HttpSession session) {
+        TempUser tempUser = (TempUser) session.getAttribute("tempUser");
 
-        if (tempUser == null) {
+        if (tempUser == null || !tempUser.getEmail().equals(request.getEmail())) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No registration found for this email.");
         }
 
@@ -90,25 +90,25 @@ public class AuthController {
         }
 
         if (tempUser.getOtpExpiry().isBefore(LocalDateTime.now())) {
-            tempUsers.remove(request.getEmail());
+            session.removeAttribute("tempUser");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("OTP expired. Please register again.");
         }
 
-        // ✅ Save to DB after verification
+        // ✅ Save to DB after successful verification
         User user = new User();
         user.setUsername(tempUser.getUsername());
         user.setEmail(tempUser.getEmail());
         user.setPassword(tempUser.getEncodedPassword());
-     
+
         userRepo.save(user);
-        tempUsers.remove(request.getEmail());
+        session.removeAttribute("tempUser"); // ❌ Clear session after use
 
         return ResponseEntity.ok("Email verified and user registered successfully.");
     }
 
-   
-    // Login (only if verified)
-   
+    
+    // Login
+    
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         Optional<User> userOpt = userRepo.findByEmail(request.getEmail());
@@ -116,10 +116,6 @@ public class AuthController {
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
         }
-
-        User user = userOpt.get();
-
-
 
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
@@ -130,10 +126,10 @@ public class AuthController {
         return ResponseEntity.ok(new JwtResponse(token, request.getEmail()));
     }
 
-    // ----------------------------
+   
     // Generate 6-digit OTP
-    // ----------------------------
+   
     private String generateOTP() {
-        return String.valueOf((int)(Math.random() * 900000) + 100000);
+        return String.valueOf((int) (Math.random() * 900000) + 100000);
     }
 }
