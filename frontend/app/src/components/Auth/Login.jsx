@@ -70,10 +70,10 @@ const Login = () => {
 
       // Assuming your backend returns user data and tokens
       console.log(response)
-      const { user, token } = response.data;
+      const { username, token } = response.data;
       
       // Store user in context/state
-      login(user, token);
+      login(username, token);
       
       // Redirect to dashboard or home
       navigate('/');

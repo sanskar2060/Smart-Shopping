@@ -4,58 +4,93 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const Cart = () => {
-  const { user } = useAuth();
+  const { token } = useAuth();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchCartItems = async () => {
-      try {
-        if (!user || !user.token) {
-          throw new Error('User not authenticated');
-        }
-
-        const response = await axios.post(
-          'cart/cart_products',
-          {
-            token: user.token
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-
-        if (response.data && Array.isArray(response.data)) {
-          // Transform the API response to match our frontend structure
-          const transformedItems = response.data.map(item => ({
-            id: item.id,
-            title: item.title,
-            price: item.cost,
-            imageUrl: item.imageUrl,
-            source: item.source,
-            productUrl: item.productUrl,
-            // These fields might not be in the API response
-            originalPrice: item.originalPrice || item.cost * 1.2, // Default to 20% higher if not provided
-            priceDropDate: item.priceDropDate ? new Date(item.priceDropDate) : new Date(Date.now() - 86400000) // Default to 1 day ago if not provided
-          }));
-          setCartItems(transformedItems);
-        } else {
-          setCartItems([]);
-        }
-      } catch (err) {
-        console.error('Error fetching cart items:', err);
-        setError(err.message);
-        setCartItems([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchCartItems();
-  }, [user]);
+  }, [token]);
+
+  const fetchCartItems = async () => {
+    try {
+      if (!token) {
+        throw new Error('User not authenticated');
+      }
+      console.log(token)
+
+      const response = await axios.post(
+        'cart/cart_products',
+        {
+          token: token
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      console.log(response.data);
+      if (response.data && Array.isArray(response.data)) {
+        // Transform the API response to match our frontend structure
+        const transformedItems = response.data.map(item => ({
+          id: item.id,
+          title: item.title,
+          price: item.cost,
+          imageUrl: item.imageUrl,
+          source: item.source,
+          productUrl: item.productUrl,
+          // These fields might not be in the API response
+          originalPrice: item.originalPrice || item.cost * 1.2, // Default to 20% higher if not provided
+          priceDropDate: item.priceDropDate ? new Date(item.priceDropDate) : new Date(Date.now() - 86400000) // Default to 1 day ago if not provided
+        }));
+        setCartItems(transformedItems);
+      } else {
+        setCartItems([]);
+      }
+    } catch (err) {
+      console.error('Error fetching cart items:', err);
+      setError(err.message);
+      setCartItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+ const removeFromCart = async (product) => {  // Now accepts the whole product object
+  try {
+    setLoading(true);
+    const response = await fetch('cart/remove', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: "webholderx@gmail.com",
+        product: {  // Now sending the full product object
+          id: product.id,
+          title: product.title,
+          source: product.source,
+          cost: product.price,  // Note: Changed from product.cost to product.price to match your cart item structure
+          imageUrl: product.imageUrl,
+          productUrl: product.productUrl
+        }
+      })
+    });
+    
+    if (response.ok) {
+      await fetchCartItems();
+    } else {
+      throw new Error(data.message || 'Failed to remove item from cart');
+    }
+  } catch (err) {
+    console.error('Error removing item from cart:', err);
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Calculate totals
   const subtotal = cartItems.reduce((sum, item) => sum + item.price, 0);
@@ -182,8 +217,8 @@ const Cart = () => {
                         </div>
                       </div>
                       
-                      {/* Direct Purchase Button */}
-                      <div className="mt-4">
+                      {/* Action Buttons */}
+                      <div className="mt-4 flex flex-col sm:flex-row sm:space-x-3 space-y-2 sm:space-y-0">
                         <a
                           href={item.productUrl}
                           target="_blank"
@@ -192,6 +227,12 @@ const Cart = () => {
                         >
                           Buy Now on {item.source}
                         </a>
+                       <button
+  onClick={() => removeFromCart(item)}  // Now passing the entire item object
+  className="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50"
+>
+  Remove
+</button>
                       </div>
                     </div>
                   </div>

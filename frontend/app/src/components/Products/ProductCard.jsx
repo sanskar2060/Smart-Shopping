@@ -1,21 +1,24 @@
 import { useState } from 'react';
+import { useAuth } from '../Context/AuthContext';
 
 const ProductCard = ({ product }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [error, setError] = useState(null);
+  const { user } = useAuth();
 
  const onAddToCart = async () => {
   setIsAdding(true);
   setError(null);
   
   try {
+    console.log(user);
     const response = await fetch('cart/add', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        email: "sanskarkvssit@gmail.com",
+        email:"webholderx@gmail.com",
         product: {
           id: product.id,
           title: product.title,
