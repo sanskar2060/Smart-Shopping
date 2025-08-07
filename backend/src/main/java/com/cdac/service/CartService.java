@@ -37,8 +37,8 @@ public class CartService {
 		cartRepository.save(cart);
 	}
 
-	public List<Product> getProductsByUserId(Long userId) {
-		User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+	public List<Product> getProductsByEmail(String email) {
+		User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
 
 		Cart cart = cartRepository.findByUser(user).orElseThrow(() -> new RuntimeException("Cart not found"));
 

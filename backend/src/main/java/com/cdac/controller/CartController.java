@@ -12,12 +12,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.cdac.dto.AddProductToCartRequest;
+import com.cdac.dto.JwtResponse;
+import com.cdac.dto.JwtToken;
 import com.cdac.dto.RemoveProductFromCartRequest;
 import com.cdac.entity.Product;
+import com.cdac.security.JwtUtil;
 import com.cdac.service.CartService;
 
 @RestController
@@ -27,6 +31,9 @@ public class CartController {
 
     @Autowired
     private CartService cartService;
+    
+    @Autowired
+    private JwtUtil jwtUtil ; 
 
     @PostMapping("/add")
     public String addProductToCart(@RequestBody AddProductToCartRequest request) {
@@ -35,18 +42,28 @@ public class CartController {
     }
     
 /// GET endpoint to retrieve all products in a user's cart
-    @GetMapping("/{userId}")
-    public ResponseEntity<?> getCartProducts(@PathVariable Long userId) {
-    	
-   
+    @PostMapping("/cart_products")
+    public ResponseEntity<?> getCartProducts(@RequestBody JwtToken jwtToken ) {
         try {
-            List<Product> products = cartService.getProductsByUserId(userId);
+            
+            
+            // Extract email from token
+            String email = jwtUtil.extractUsername(jwtToken.getToken() );
+            
+            // Validate email extraction
+            if (email == null || email.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+            }
+            
+            List<Product> products = cartService.getProductsByEmail(email);
             return ResponseEntity.ok(products);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                   .body("An error occurred: " + e.getMessage());
         }
     }
-    
     
     // DELETE endpoint to remove a product from the cart
     @DeleteMapping("/remove")
