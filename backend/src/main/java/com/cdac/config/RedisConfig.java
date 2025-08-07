@@ -8,35 +8,22 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.*;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class RedisConfig {
 
-<<<<<<< HEAD
     @Value("${spring.redis.host:localhost}")
     private String redisHost;
 
     @Value("${spring.redis.port:6379}")
-=======
-    @Value("${spring.redis.host}")
-    private String redisHost;
-
-    @Value("${spring.redis.port}")
->>>>>>> b5bc295d65dcecd9dbb704f1a88fdd6733045368
     private int redisPort;
 
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
-<<<<<<< HEAD
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-        config.setHostName(redisHost);
-        config.setPort(redisPort);
-
-        // Password not required or used
-=======
+        // Configure Redis without password
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(redisHost, redisPort);
->>>>>>> b5bc295d65dcecd9dbb704f1a88fdd6733045368
         return new LettuceConnectionFactory(config);
     }
 
@@ -45,9 +32,11 @@ public class RedisConfig {
         RedisTemplate<String, ProductListWrapper> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
 
+        // Set key serializers
         template.setKeySerializer(new StringRedisSerializer());
         template.setHashKeySerializer(new StringRedisSerializer());
 
+        // Set value serializers
         Jackson2JsonRedisSerializer<ProductListWrapper> jsonSerializer =
                 new Jackson2JsonRedisSerializer<>(ProductListWrapper.class);
         jsonSerializer.setObjectMapper(new ObjectMapper());

@@ -10,7 +10,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.UUID;
+
 @Service
 public class ScraperService {
 
@@ -19,9 +23,8 @@ public class ScraperService {
     @Autowired
     private RedisTemplate<String, ProductListWrapper> redisTemplate;
 
-    // Use service names from docker-compose instead of localhost
-    private static final String FLIPKART_SERVICE_URL = "http://flipkart-scraper:3000/search/";
-    private static final String AMAZON_SERVICE_URL = "http://amazon-scraper:8085/search";
+    private static final String FLIPKART_SERVICE_URL = "http://localhost:5000/search/";
+    private static final String AMAZON_SERVICE_URL = "http://localhost:8085/search?q=";
 
     public List<Product> fetchAndCompareProducts(String query) {
         String redisKey = "PRODUCTS_" + query.toLowerCase();
@@ -29,7 +32,7 @@ public class ScraperService {
         // Step 1: Check Redis cache first
         ProductListWrapper cached = redisTemplate.opsForValue().get(redisKey);
         if (cached != null) {
-            System.out.println("Fetching from Redis Cache...");
+            System.out.println("✅ Fetching from Redis Cache...");
             return cached.getProducts();
         }
 
@@ -54,13 +57,12 @@ public class ScraperService {
                 products.add(product);
             }
         } catch (Exception e) {
-            System.out.println("Flipkart fetch failed: " + e.getMessage());
-            e.printStackTrace();
+            System.out.println("❌ Flipkart fetch failed: " + e.getMessage());
         }
 
         // Step 3: Fetch from Amazon
         try {
-            String amazonUrl = AMAZON_SERVICE_URL + "?q=" + query;
+            String amazonUrl = AMAZON_SERVICE_URL + query;
             ResponseEntity<String> amazonResponse = restTemplate.getForEntity(amazonUrl, String.class);
             JSONObject amazonJson = new JSONObject(amazonResponse.getBody());
             JSONArray amazonResults = amazonJson.getJSONArray("results");
@@ -72,20 +74,23 @@ public class ScraperService {
                 String link = item.optString("url");
                 String imgurl = item.optString("image");
                 String priceStr = item.optString("price").replaceAll("[^\\d.]", "");
-                double price = priceStr.isEmpty() ? 0.0 : Double.parseDouble(priceStr);
+
+                double price = 0.0;
+                try {
+                    if (!priceStr.isEmpty()) {
+                        price = Double.parseDouble(priceStr);
+                    }
+                } catch (NumberFormatException ignored) {}
 
                 Product product = new Product(asin, title, "Amazon", price, imgurl, link);
                 products.add(product);
             }
         } catch (Exception e) {
-            System.out.println("Amazon fetch failed: " + e.getMessage());
-            e.printStackTrace();
+            System.out.println("❌ Amazon fetch failed: " + e.getMessage());
         }
 
-        // Step 4: Sort and store in Redis
+        // Step 4: Sort and cache in Redis
         products.sort(Comparator.comparingDouble(Product::getCost));
-
-        // Cache to Redis
         redisTemplate.opsForValue().set(redisKey, new ProductListWrapper(products));
 
         return products;
@@ -103,7 +108,7 @@ public class ScraperService {
                 }
             }
         } catch (Exception e) {
-            System.out.println("PID extract error: " + e.getMessage());
+            System.out.println("⚠️ PID extract error: " + e.getMessage());
         }
         return UUID.randomUUID().toString();
     }
