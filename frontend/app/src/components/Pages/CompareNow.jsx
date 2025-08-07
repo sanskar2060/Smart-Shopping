@@ -71,7 +71,6 @@ const CompareNow = () => {
     <div className="min-h-screen bg-gray-50">
 
 
-      <Navbar/>
       {/* Navigation (you can reuse your existing nav or create a separate component) */}
       
       {/* Main Content */}
