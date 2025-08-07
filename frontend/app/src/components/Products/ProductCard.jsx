@@ -9,7 +9,7 @@ const ProductCard = ({ product }) => {
   setError(null);
   
   try {
-    const response = await fetch('http://localhost:8082/cart/add', {
+    const response = await fetch('cart/add', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

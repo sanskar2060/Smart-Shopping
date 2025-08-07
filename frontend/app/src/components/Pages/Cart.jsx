@@ -1,23 +1,61 @@
 import { useAuth } from '../Context/AuthContext';
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const Cart = () => {
   const { user } = useAuth();
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Sample cart data with price drop information
-  const cartItems = [
-    { 
-      id: "BATGB44UCTKPUFUG", 
-      title: "DTD Hard Fiber Alloy PVC/Plastic Cricket Bat For 15+ Yrs", 
-      price: 146.0, 
-      originalPrice: 199.0, // Original price for price drop calculation
-      imageUrl: "https://rukminim2.flixcart.com/image/612/612/xif0q/bat/6/u/x/600-700-hard-fiber-alloy-6-pl-bl-grade-1-dtd-original-imahdmvjmnwexhdz.jpeg?q=70",
-      source: "Flipkart",
-      productUrl: "https://flipkart.com/dtd-hard-fiber-alloy-pvc-plastic-cricket-bat-15-yrs/p/itmfeadf1902c232",
-      priceDropDate: new Date(Date.now() - 86400000) // Price dropped 1 day ago
-    },
-    // Add more items as needed
-  ];
+  useEffect(() => {
+    const fetchCartItems = async () => {
+      try {
+        if (!user || !user.token) {
+          throw new Error('User not authenticated');
+        }
+
+        const response = await axios.post(
+          'cart/cart_products',
+          {
+            token: user.token
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        if (response.data && Array.isArray(response.data)) {
+          // Transform the API response to match our frontend structure
+          const transformedItems = response.data.map(item => ({
+            id: item.id,
+            title: item.title,
+            price: item.cost,
+            imageUrl: item.imageUrl,
+            source: item.source,
+            productUrl: item.productUrl,
+            // These fields might not be in the API response
+            originalPrice: item.originalPrice || item.cost * 1.2, // Default to 20% higher if not provided
+            priceDropDate: item.priceDropDate ? new Date(item.priceDropDate) : new Date(Date.now() - 86400000) // Default to 1 day ago if not provided
+          }));
+          setCartItems(transformedItems);
+        } else {
+          setCartItems([]);
+        }
+      } catch (err) {
+        console.error('Error fetching cart items:', err);
+        setError(err.message);
+        setCartItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCartItems();
+  }, [user]);
 
   // Calculate totals
   const subtotal = cartItems.reduce((sum, item) => sum + item.price, 0);
@@ -28,11 +66,45 @@ const Cart = () => {
 
   // Function to format how long ago price dropped
   const formatPriceDropTime = (date) => {
+    if (!date) return '';
     const hours = Math.floor((Date.now() - date) / 3600000);
     if (hours < 24) return `Dropped ${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
     const days = Math.floor(hours / 24);
     return `Dropped ${days} ${days === 1 ? 'day' : 'days'} ago`;
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading your cart...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 mb-4">
+            <svg className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h2 className="text-lg font-medium text-gray-900">Error loading cart</h2>
+          <p className="mt-2 text-gray-600">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
