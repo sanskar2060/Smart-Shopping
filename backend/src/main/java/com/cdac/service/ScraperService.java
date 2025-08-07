@@ -23,8 +23,8 @@ public class ScraperService {
     @Autowired
     private RedisTemplate<String, ProductListWrapper> redisTemplate;
 
-    private static final String FLIPKART_SERVICE_URL = "http://localhost:5000/search/";
-    private static final String AMAZON_SERVICE_URL = "http://localhost:8085/search?q=";
+       private static final String FLIPKART_SERVICE_URL = "http://flipkart-scraper:3000/search/";
+    private static final String AMAZON_SERVICE_URL = "http://amazon-scraper:8085/search";
 
     public List<Product> fetchAndCompareProducts(String query) {
         String redisKey = "PRODUCTS_" + query.toLowerCase();

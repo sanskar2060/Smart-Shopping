@@ -8,13 +8,10 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.security.authentication.*;
-import org.springframework.http.*;
-import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import com.cdac.dto.*;
 import com.cdac.dto.*;
 import com.cdac.entity.User;
 import com.cdac.repository.UserRepository;
@@ -22,26 +19,24 @@ import com.cdac.security.JwtUtil;
 import com.cdac.service.EmailService;
 import com.cdac.temp.TempUser;
 
-import jakarta.servlet.http.HttpSession;
-
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
-	@Autowired
-	private UserRepository userRepo;
+    @Autowired
+    private UserRepository userRepo;
 
-	@Autowired
-	private PasswordEncoder passwordEncoder;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-	@Autowired
-	private AuthenticationManager authenticationManager;
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
-	@Autowired
-	private JwtUtil jwtUtil;
+    @Autowired
+    private JwtUtil jwtUtil;
 
-	@Autowired
-	private EmailService emailService;
+    @Autowired
+    private EmailService emailService;
 
     @GetMapping("/test")
     public String testing() {
@@ -58,21 +53,25 @@ public class AuthController {
         }
 
 
-        TempUser sessionTempUser = (TempUser) session.getAttribute("tempUser");
-        if (sessionTempUser != null && sessionTempUser.getEmail().equals(request.getEmail())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email already pending verification.");
-        }
+      
 
 
-	
+        String otp = generateOTP();
+        LocalDateTime expiry = LocalDateTime.now().plusMinutes(10);
 
-		String otp = generateOTP();
-		LocalDateTime expiry = LocalDateTime.now().plusMinutes(10);
+        TempUser tempUser = new TempUser(
+            request.getUsername(),
+            request.getEmail(),
+            passwordEncoder.encode(request.getPassword()),
+            otp,
+            expiry
+        );
 
         session.setAttribute("tempUser", tempUser);  // ✅ Store in session
         emailService.sendVerificationEmail(request.getEmail(), otp);
 
-
+        return ResponseEntity.ok("OTP sent to your email. Please verify to complete registration.");
+    }
 
     
     // Verify: Validate OTP and Save User
@@ -85,28 +84,26 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No registration found for this email.");
         }
 
-	// @PostMapping("/verify")
-	// public ResponseEntity<String> verify(@RequestBody VerifyRequest request) {
-	// 	TempUser tempUser = tempUsers.get(request.getEmail());
+        if (!tempUser.getOtp().equals(request.getOtp_code())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid OTP.");
+        }
 
-    //     if (tempUser.getOtpExpiry().isBefore(LocalDateTime.now())) {
-    //         session.removeAttribute("tempUser");
-    //         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("OTP expired. Please register again.");
-    //     }
+        if (tempUser.getOtpExpiry().isBefore(LocalDateTime.now())) {
+            session.removeAttribute("tempUser");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("OTP expired. Please register again.");
+        }
 
-    //     // ✅ Save to DB after successful verification
-    //     User user = new User();
-    //     user.setUsername(tempUser.getUsername());
-    //     user.setEmail(tempUser.getEmail());
-    //     user.setPassword(tempUser.getEncodedPassword());
+        // ✅ Save to DB after successful verification
+        User user = new User();
+        user.setUsername(tempUser.getUsername());
+        user.setEmail(tempUser.getEmail());
+        user.setPassword(tempUser.getEncodedPassword());
 
-    //     userRepo.save(user);
-    //     session.removeAttribute("tempUser"); // ❌ Clear session after use
+        userRepo.save(user);
+        session.removeAttribute("tempUser"); // ❌ Clear session after use
 
-	// 	if (tempUser.getOtpExpiry().isBefore(LocalDateTime.now())) {
-	// 		tempUsers.remove(request.getEmail());
-	// 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("OTP expired. Please register again.");
-	// 	}
+        return ResponseEntity.ok("Email verified and user registered successfully.");
+    }
 
     
     // Login
@@ -115,32 +112,18 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         Optional<User> userOpt = userRepo.findByEmail(request.getEmail());
 
-		userRepo.save(user);
-		tempUsers.remove(request.getEmail());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
 
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
 
-	    try {
-	        // Try to authenticate user with email and password
-	        Authentication authentication = authenticationManager.authenticate(
-	                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-	    } catch (BadCredentialsException ex) {
-	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid password.");
-	    }
+        String token = jwtUtil.generateToken(request.getEmail());
 
-	    // If authentication successful
-	    String token = jwtUtil.generateToken(request.getEmail());
-	    return ResponseEntity.ok(new JwtResponse(token, request.getEmail()));
-	}
-	
-	
-	
-	@PostMapping("/forgot-password")
-	public ResponseEntity<String> forgotPassword(@RequestBody ForgotPassword request, HttpSession session) {
-		// Find user by email
-		Optional<User> userOptional = userRepo.findByEmail(request.getEmail());
+        return ResponseEntity.ok(new JwtResponse(token, request.getEmail()));
+    }
 
    
     // Generate 6-digit OTP
