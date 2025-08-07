@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const Cart = () => {
-  const { token } = useAuth();
+  const { token ,user} = useAuth();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -67,7 +67,7 @@ const Cart = () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        email: "webholderx@gmail.com",
+        email: user,
         product: {  // Now sending the full product object
           id: product.id,
           title: product.title,

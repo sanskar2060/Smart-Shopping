@@ -18,7 +18,7 @@ const ProductCard = ({ product }) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        email:"webholderx@gmail.com",
+        email:user,
         product: {
           id: product.id,
           title: product.title,
