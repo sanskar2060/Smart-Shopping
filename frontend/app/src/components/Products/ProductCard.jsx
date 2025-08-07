@@ -1,4 +1,57 @@
-const ProductCard = ({ product, onAddToCart }) => {
+import { useState } from 'react';
+
+const ProductCard = ({ product }) => {
+  const [isAdding, setIsAdding] = useState(false);
+  const [error, setError] = useState(null);
+
+ const onAddToCart = async () => {
+  setIsAdding(true);
+  setError(null);
+  
+  try {
+    const response = await fetch('http://localhost:8082/cart/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: "sanskarkvssit@gmail.com",
+        product: {
+          id: product.id,
+          title: product.title,
+          source: product.source,
+          cost: product.cost,
+          imageUrl: product.imageUrl,
+          productUrl: product.productUrl
+        }
+      })
+    });
+
+    // First check if the response is OK (status 200-299)
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || 'Failed to add to cart');
+    }
+
+    // Try to parse as JSON only if there's content
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const data = await response.json();
+      console.log('Added to cart:', data);
+      // You might want to show a success message here
+    } else {
+      const text = await response.text();
+      console.log('Success:', text);
+      // Handle non-JSON successful responses
+    }
+  } catch (err) {
+    setError(err.message);
+    console.error('Error adding to cart:', err);
+  } finally {
+    setIsAdding(false);
+  }
+};
+
   return (
     <div className="group relative bg-white rounded-xl overflow-hidden transition-all duration-300 ease-in-out 
                   border border-gray-200 hover:border-gray-300
@@ -44,6 +97,13 @@ const ProductCard = ({ product, onAddToCart }) => {
           </span>
         </div>
 
+        {/* Error message */}
+        {error && (
+          <div className="text-red-500 text-sm mb-3">
+            {error}
+          </div>
+        )}
+
         {/* Action Buttons with inner shadows */}
         <div className="flex space-x-3">
           <a
@@ -61,20 +121,27 @@ const ProductCard = ({ product, onAddToCart }) => {
           </a>
           <button
             onClick={onAddToCart}
-            className="flex-1 px-4 py-2 text-sm font-medium rounded-md 
-                     text-white bg-gray-900 hover:bg-gray-800 
+            disabled={isAdding}
+            className={`flex-1 px-4 py-2 text-sm font-medium rounded-md 
+                     text-white ${isAdding ? 'bg-gray-600' : 'bg-gray-900 hover:bg-gray-800'} 
                      shadow-[inset_0_1px_2px_rgba(255,255,255,0.1)]
                      hover:shadow-[inset_0_1px_3px_rgba(255,255,255,0.15)]
                      focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 
-                     transition-all duration-200 relative overflow-hidden"
+                     transition-all duration-200 relative overflow-hidden`}
           >
             <span className="absolute inset-0 bg-gradient-to-r from-gray-700/10 to-gray-900/10 
                             opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <span className="relative z-10 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Add to Cart
+              {isAdding ? (
+                'Adding...'
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Add to Cart
+                </>
+              )}
             </span>
           </button>
         </div>

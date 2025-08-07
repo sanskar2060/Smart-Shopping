@@ -4,7 +4,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 git branch: 'main', 
-                url: 'https://github.com/your-username/your-repo.git'
+                url: 'https://github.com/ChiragRohada7020/Smart-Shopping-.git'
             }
         }
         stage('Build & Deploy') {

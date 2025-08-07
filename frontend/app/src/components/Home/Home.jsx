@@ -1,13 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
-import Navbar from "../Header/Navbar"
 const HomePage = () => {
-  const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       {/* Navigation Bar */}
-     <Navbar/>
       {/* Hero Section */}
       <div className="relative bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto">

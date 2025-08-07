@@ -11,31 +11,32 @@ import HowItWorks from './components/Products/HowItWorks';
 import SupportedStores from './components/Pages/SupportedStores';
 import Cart from './components/Pages/Cart';
 import Logout from './components/Auth/Logout';
+import Navbar from './components/Header/Navbar';
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
     <>
-    <AuthProvider>
-   <Router>
-      <Routes>
-         <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-<Route path="/search" element={<CompareNow />} />
-<Route path="/how-it-works" element={<HowItWorks />} />
-<Route path="/stores" element={<SupportedStores />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/logout" element={<Logout />} />
-
-
-<Route element={<ProtectedRoute />}>
+     <AuthProvider>
+      <Router>
+        <Navbar /> {/* Navbar outside Routes to show on all pages */}
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/search" element={<CompareNow />} />
+          <Route path="/how-it-works" element={<HowItWorks />} />
+          <Route path="/stores" element={<SupportedStores />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/logout" element={<Logout />} />
+          <Route element={<ProtectedRoute />}>
        //ProtectedRoute will we here
         </Route>
       </Routes>
-    </Router>
+      </Router>
     </AuthProvider>
+   
     </>
   )
 }

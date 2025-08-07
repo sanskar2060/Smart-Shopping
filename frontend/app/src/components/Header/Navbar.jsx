@@ -1,10 +1,12 @@
 import React from 'react';
+import { useState } from 'react';
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom'
 import { useAuth } from '../Context/AuthContext';
 const Navbar = () => {
 
     const { user } = useAuth();
-  
+
   return (
     <nav className="bg-white shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
