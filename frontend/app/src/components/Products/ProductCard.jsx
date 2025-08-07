@@ -94,10 +94,23 @@ const ProductCard = ({ product }) => {
           <span className="text-xl font-semibold text-gray-800">
             ₹{product.cost.toLocaleString('en-IN')}
           </span>
-          <span className="text-xs font-medium text-gray-500 uppercase tracking-wider 
-                         border-b border-gray-300 pb-0.5">
-            {product.source}
-          </span>
+         <span className="text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-300 pb-0.5">
+  {product.source.toLowerCase().includes('amazon') ? (
+    <img 
+      src="https://upload.wikimedia.org/wikipedia/commons/d/de/Amazon_icon.png" 
+      alt="Amazon" 
+      className="h-10 w-auto"
+    />
+  ) : product.source.toLowerCase().includes('flipkart') ? (
+    <img 
+      src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVWzGxiYGlEM-IzG4PWRrn875F0LOcXLulhQ&s" 
+      alt="Flipkart" 
+      className="h-10 w-auto"
+    />
+  ) : (
+    product.source
+  )}
+</span>
         </div>
 
         {/* Error message */}
