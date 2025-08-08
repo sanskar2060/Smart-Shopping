@@ -13,6 +13,10 @@ import Cart from './components/Pages/Cart';
 import Logout from './components/Auth/Logout';
 import Navbar from './components/Header/Navbar';
 
+import ForgotPassword from "./components/Auth/ForgotPassword"
+import VerifyOTP from "./components/Auth/VerifyOTP"
+
+
 function App() {
   const [count, setCount] = useState(0)
 
@@ -29,6 +33,10 @@ function App() {
           <Route path="/how-it-works" element={<HowItWorks />} />
           <Route path="/stores" element={<SupportedStores />} />
           <Route path="/cart" element={<Cart />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                                <Route path="/verify-otp" element={<VerifyOTP />} />
+
+
           <Route path="/logout" element={<Logout />} />
           <Route element={<ProtectedRoute />}>
        //ProtectedRoute will we here
