@@ -125,6 +125,90 @@ public class AuthController {
         return ResponseEntity.ok(new JwtResponse(token, request.getEmail()));
     }
 
+	
+	@PostMapping("/forgot-password")
+	public ResponseEntity<String> forgotPassword(@RequestBody ForgotPassword request, HttpSession session) {
+		// Find user by email
+		Optional<User> userOptional = userRepo.findByEmail(request.getEmail());
+
+		// Security Note: Always return a generic success message.
+		// This prevents an attacker from learning which emails are registered.
+		if (userOptional.isPresent()) {
+			User user = userOptional.get();
+
+			String otp = generateOTP(); // Reusing your OTP logic is fine for this
+			session.setAttribute("email", request.getEmail());
+			session.setAttribute("otp", otp);
+			session.setAttribute("expireTime", LocalDateTime.now().plusMinutes(10));
+
+			// Send email with the token
+			emailService.sendPasswordResetEmail(user.getEmail(), otp);
+		}
+
+		return ResponseEntity.ok("If an account with this email exists, a password reset token has been sent.");
+	}
+
+	@PostMapping("/reset-password")
+	public ResponseEntity<String> resetPassword(@RequestBody ResetPassword request, HttpSession session) {
+		// Find the user by the provided token
+		Optional<User> userOptional = userRepo.findByEmail((String) session.getAttribute("email"));
+		User user = userOptional.get();
+
+		// check if otp is valid or not
+		if (!request.getOtp().equals((String) session.getAttribute("otp"))) {
+			
+			
+			// Invalidate the token after use so it cannot be used again
+			session.removeAttribute("email");
+			session.removeAttribute("otp");
+			session.removeAttribute("expireTime");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid token.");
+		}
+
+		// Check if the token has expired
+		if (((LocalDateTime) session.getAttribute("expireTime")).isBefore(LocalDateTime.now())) {			
+			// Invalidate the token after use so it cannot be used again
+			session.removeAttribute("email");
+			session.removeAttribute("otp");
+			session.removeAttribute("expireTime");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token has expired.");
+		}
+
+		// otp is valid, update the password
+		user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+		userRepo.save(user);
+
+		// Invalidate the token after use so it cannot be used again
+
+		session.removeAttribute("email");
+		session.removeAttribute("otp");
+		session.removeAttribute("expireTime");
+
+		return ResponseEntity.ok("Password has been reset successfully. You can now login.");
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    
     // Generate 6-digit OTP
    
